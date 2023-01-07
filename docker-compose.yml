@@ -8,3 +8,5 @@ services:
       - ./:/app
     environment:
       - HOME=/app
+    ports:
+      - 80:80
