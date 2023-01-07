@@ -7,14 +7,12 @@ pragma solidity ^0.8.13;
 contract DogCatcher {
   address owner;
 
-  uint256 public price;
   bool public isAvailable;
   
   string forbiden = "pitbul";
 
   constructor() {
     owner = msg.sender;
-    price = 10;
     isAvailable = true;
   }
 
