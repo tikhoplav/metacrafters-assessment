@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { Depositor__factory } from "../typechain-types/factories";
 import type { Depositor } from "../typechain-types";
-import useMetaMask from "./useMetaMask";
 
 export const useDepositor = ({
   address,
+  ethereum,
+  refresh,
 }: {
   address: string,
+  ethereum: any,
+  refresh: () => Promise<void>
 }) => {
-  const { ethereum } = useMetaMask();
-
   const [contract, setContract] = useState<Depositor | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
@@ -28,7 +29,7 @@ export const useDepositor = ({
 
   const [ownerAddress, setOwnerAddress] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchOwner = useCallback(() => {
     if (!contract) return
     contract.owner()
       .then(ownerAddress => setOwnerAddress(ownerAddress.toLowerCase()))
@@ -37,22 +38,60 @@ export const useDepositor = ({
       })
   }, [contract]);
 
+  useEffect(() => {
+    fetchOwner()
+  }, [fetchOwner])
+
   const [balance, setBalance] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchBalance = useCallback(async () => {
     if (!contract || !provider) return;
-    provider.getBalance(contract.address)
-      .then(eth => setBalance(ethers.utils.formatEther(eth)))
-      .catch((error: any) => {
-        console.error("Failed to fetch contract balance", error);
-      })
+    try {
+      const eth = await provider.getBalance(contract.address)
+      const balance = ethers.utils.formatEther(eth)
+      setBalance(balance)
+    } catch (error: any) {
+      console.error("Failed to fetch contract balance", error);
+    }
   }, [contract, provider])
+
+  useEffect(() => {
+    fetchBalance()
+  }, [fetchBalance])
+
+  const withdrawal = useCallback(async (amount: string) => {
+    if (!contract) return;
+    try {
+      const tx = await contract.withdrawal(ethers.utils.parseEther(amount));
+      const receipt = await tx.wait();
+      await refresh();
+      await fetchBalance();
+      return receipt;
+    } catch (error: any) {
+      console.error("Transaction failed", error);
+    }
+  }, [contract, refresh]);
+
+  const deposit = useCallback(async (amount: string) => {
+    if (!contract) return;
+    try {
+      const tx = await contract.deposit({ value: ethers.utils.parseEther(amount) });
+      const receipt = await tx.wait();
+      await refresh();
+      await fetchBalance();
+      return receipt;
+    } catch (error: any) {
+      console.error("Transaction failed", error);
+    }
+  }, [contract, refresh])
 
   return {
     contract,
     signer,
     ownerAddress,
     balance,
+    withdrawal,
+    deposit,
   }
 }
 

@@ -27,6 +27,7 @@ export const useMetaMask = () => {
       console.log("Accounts was changed!!")
       const [account] = accounts; 
       setAccount(account);
+      console.log("account changed, refreshing balance")
       ethereum.request({ method: "eth_getBalance", params: [account, 'latest']})
         .then((eth: ethers.BigNumberish) => {
           const balance = ethers.utils.formatEther(eth);
@@ -42,14 +43,7 @@ export const useMetaMask = () => {
 
     ethereum
       .request({ method: "eth_accounts" })
-      .then(([account]: string[]) => {
-        setAccount(account)
-        ethereum.request({ method: "eth_getBalance", params: [account, 'latest']})
-          .then((eth: ethers.BigNumberish) => {
-            const balance = ethers.utils.formatEther(eth);
-            setBalance(balance)
-          })
-      })
+      .then(onAccountsChanged)
       .catch((e: any) => console.error("Failed to get metamask accounts", e));
 
     ethereum
@@ -71,9 +65,9 @@ export const useMetaMask = () => {
      * Connect a MetaMask wallet. This would trigger the MetaMask browser
      * extension to start the connection dialog.
      */
-  const connect: () => Promise<void> = useCallback(() => {
+  const connect = useCallback(async () => {
     if (!ethereum) return Promise.reject("window.ethereum is undefined");
-    return ethereum.request({ method: "eth_requestAccounts" });
+    return await ethereum.request({ method: "eth_accounts" });
   }, [ethereum]);
 
   /**
@@ -84,6 +78,16 @@ export const useMetaMask = () => {
     return !!account;
   }, [account]);
 
+  const refresh = useCallback(async () => {
+    if (!account || !ethereum) return
+    try {
+      const eth = await ethereum.request({ method: "eth_getBalance", params: [account, 'latest']})
+      const balance = ethers.utils.formatEther(eth);
+      setBalance(balance)
+    } catch (error: any) {
+      console.error("Failed to refresh", error)
+    }
+  }, [ethereum, account])
 
   return {
     ethereum,
@@ -92,6 +96,7 @@ export const useMetaMask = () => {
     balance,
     connect,
     connected,
+    refresh,
   }
 }
 
