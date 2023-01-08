@@ -24,9 +24,14 @@ export const useMetaMask = () => {
     ethereum.on("disconnect", onDisconnect);
 
     const onAccountsChanged = (accounts: string[]) => {
+      console.log("Accounts was changed!!")
       const [account] = accounts; 
       setAccount(account);
-
+      ethereum.request({ method: "eth_getBalance", params: [account, 'latest']})
+        .then((eth: ethers.BigNumberish) => {
+          const balance = ethers.utils.formatEther(eth);
+          setBalance(balance)
+        })
     };
     ethereum.on("accountsChanged", onAccountsChanged);
 
