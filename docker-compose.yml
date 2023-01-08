@@ -10,3 +10,15 @@ services:
       - HOME=/app
     ports:
       - 80:80
+    command: ['yarn', 'serve']
+
+  net:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      - HOME=/app
+    ports:
+      - 8545:8545
+    command: ['npx', 'hardhat', 'node']

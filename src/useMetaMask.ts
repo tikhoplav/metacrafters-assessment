@@ -5,7 +5,7 @@ export const useMetaMask = () => {
   const [ethereum, setEthereum] = useState<any | null>(null);
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<string | null>(null);
-  const [balance, setBalance] = useState<number | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
 
   useEffect(() => {
     const { ethereum } = window as any;
@@ -42,7 +42,7 @@ export const useMetaMask = () => {
         ethereum.request({ method: "eth_getBalance", params: [account, 'latest']})
           .then((eth: ethers.BigNumberish) => {
             const balance = ethers.utils.formatEther(eth);
-            setBalance(parseFloat(balance))
+            setBalance(balance)
           })
       })
       .catch((e: any) => console.error("Failed to get metamask accounts", e));
