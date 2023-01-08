@@ -1,21 +1,21 @@
 import React, { useMemo } from "react";
 import { createRoot } from "react-dom/client";
-import useDepositor from "./useDepositor";
+// import useDepositor from "./useDepositor";
 import useMetaMask from "./useMetaMask";
 
 const App = () => {
   // This should be global context instead.
   const { ethereum, connect, connected, account, balance, chainId, refresh } = useMetaMask();
 
-  const { contract, ownerAddress, balance: depositorBalance, withdrawal, deposit } = useDepositor({
-    address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    ethereum: ethereum,
-    refresh: refresh,
-  });
+  // const { contract, ownerAddress, balance: depositorBalance, withdrawal, deposit } = useDepositor({
+  //   address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+  //   ethereum: ethereum,
+  //   refresh: refresh,
+  // });
 
-  const isOwner = useMemo(() => {
-    return account === ownerAddress
-  }, [account, ownerAddress])
+  // const isOwner = useMemo(() => {
+  //   return account === ownerAddress
+  // }, [account, ownerAddress])
 
   return <div>
     {connected
@@ -32,7 +32,7 @@ const App = () => {
 
     <hr></hr>
 
-    {contract
+    {/* {contract
       ? <>
           <h3>Connected to Depositor</h3>
           <div><b>Owner address:</b> {ownerAddress} {isOwner && <b>(you)</b>}</div>
@@ -76,7 +76,7 @@ const App = () => {
       : <>
           <div>Depositor contract is not connected...</div>
         </>
-    }
+    } */}
   </div>
 }
 
